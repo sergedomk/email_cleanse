@@ -1,0 +1,4 @@
+include README.rst
+include requirements.txt requirements-testing.txt requirements-docs.txt
+recursive-include tests *.py
+recursive-include docs *.py *.rst Makefile

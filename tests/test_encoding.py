@@ -15,9 +15,6 @@ class TestEncoding(unittest.TestCase):
             "honyaku@googlegroups.com",
             "\"=?UTF-8?Q?Igor_=C5=A0erko?=\"",
             "=?UTF-8?B?5qGD5aSqLCDpg44=?= ",
-            # The last case above: possible fail if this is an email as it
-            # decodes with a comma in it. Not sure yet if that is an issue
-            # Is raised in 
         ]
         for header in test_headers:
             decoded = email_utils.encoding.get_decoded_header(header)

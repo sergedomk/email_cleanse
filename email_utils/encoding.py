@@ -8,7 +8,6 @@ import re
 import chardet
 from email.header import decode_header
 
-JOIN_CHAR = "".encode('utf-8')
 
 def get_decoded_email_header(text):
     """Get the decoded value for the email header text passed in.
@@ -27,7 +26,7 @@ def get_decoded_email_header(text):
     decoded_parts = []
     for part, charset in parts:
         decoded_parts.append(decode_string_to_unicode(part, charset))
-    return JOIN_CHAR.join(decoded_parts)
+    return "".join(decoded_parts)
 
 def decode_string_to_unicode(text, charset=None):
     """Get the unicode value of text using provided charset. If the charset
@@ -47,3 +46,22 @@ def decode_string_to_unicode(text, charset=None):
     except (UnicodeError, LookupError):
         charset = chardet.detect(text)
         return text.decode(charset['encoding'], 'replace')
+
+def get_charset(message):
+    """Get the charset defined for the message.
+
+    The charset can be retrieved in two ways. Try the preferred method
+    first and, if that fails, try the other method.
+
+    Args:
+        message (Message): An email Message object.
+
+    Returns:
+        (unicode) The charset that was found or `None` if not found.
+    """
+    charset = message.get_content_charset()
+    if not charset:
+        charset = message.get_charset()
+    return charset
+
+

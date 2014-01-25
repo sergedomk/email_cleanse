@@ -14,7 +14,7 @@ with open('requirements-testing.txt') as fd:
     tests_require = [line for line in test_reqs if not line.startswith('#')]
 
 setup(
-    name = 'email-utils',
+    name = 'email-cleanse',
     version = '0.1',
     description = 'Email Utils',
     long_description = readme,

@@ -24,10 +24,10 @@ clean:
 	-rm -rf $(BUILDDIR)/*
 	-rm modules.rst
 
-brandx_timing_api:
-	sphinx-apidoc -o $(SOURCEDIR) ../email_utils
+email_cleanse:
+	sphinx-apidoc -o $(SOURCEDIR) ../email_cleanse
 
-html: brandx_timing_api
+html: email_cleanse
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

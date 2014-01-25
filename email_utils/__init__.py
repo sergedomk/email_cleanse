@@ -1,4 +1,0 @@
-"""
-The Email Utils Package.
-"""
-

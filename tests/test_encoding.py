@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 import unittest
 
-import email_utils.encoding
+import email_cleanse.encoding
 
 class TestEncoding(unittest.TestCase):
     def test_get_decoded_email_header(self):
@@ -21,7 +21,7 @@ class TestEncoding(unittest.TestCase):
                 "=?iso-2022-jp?b?GyRCRW1CQE86GyhCID?=\t<momo@taro.ne.jp>"
         }
         for header, encoded in test_headers.iteritems():
-            decoded = email_utils.encoding.get_decoded_email_header(encoded)
+            decoded = email_cleanse.encoding.get_decoded_email_header(encoded)
             self.assertEqual(header, decoded)
 
     def test_get_decoded_email_header_subject(self):
@@ -57,7 +57,7 @@ class TestEncoding(unittest.TestCase):
                 "=?foobar?q?p=F6stal?=",
         }
         for subject, encoded in test_subjects.iteritems():
-            decoded = email_utils.encoding.get_decoded_email_header(encoded)
+            decoded = email_cleanse.encoding.get_decoded_email_header(encoded)
             self.assertEqual(subject, decoded)
 
 

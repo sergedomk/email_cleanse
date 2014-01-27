@@ -1,8 +1,8 @@
-email_utils
-===========
+Email Cleanse
+=============
 
-This package contains a collection of utilities and tools for dealing with
-email.
+This package contains tools for dealing with some of the common issues
+surrounding email consistency.
 
 The initial focus of this package is to provide an easy way to normalize
 email to a single character encoding. There is nothing preventing email

@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Tests against utility functions.
+Tests against utility encoding functions.
 """
 from __future__ import unicode_literals
 
 import unittest
 
 import email_cleanse.encoding
+
 
 class TestEncoding(unittest.TestCase):
     def test_get_decoded_email_header(self):

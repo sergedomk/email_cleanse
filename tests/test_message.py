@@ -6,40 +6,29 @@ from __future__ import unicode_literals
 
 import unittest
 
-from email_cleanse.message import UnicodeMessage, Attachment, DigestMessage
+from email_cleanse.message import MessagePart, UnicodeMessage, Attachment
 
 
-class TestAttachment(unittest.TestCase):
-    def test_set_header(self):
-        att = Attachment()
-        att.set_header('Content-Disposition', '')
-        att.set_header('Content-Type', 'text/plain')
-        # Order is preserved.
+class TestMessagePart(unittest.TestCase):
+
+    def test_set_all_headers(self):
+        msg = MessagePart()
+        headers = [('From', 'jim@example.com'), ('To', 'bob@example.com')]
+        msg.set_all_headers(headers)
+        # Order preserved.
         self.assertEqual([
-                ('Content-Disposition', ''),
-                ('Content-Type', 'text/plain'),
-            ], att.headers)
-        att.set_header('Content-Disposition', '')
-        # Order remains unchanged. Second Disposition added
-        # to the end.
+                ('From', 'jim@example.com'),
+                ('To', 'bob@example.com'),
+            ], msg.headers)
+        # Ensure mutablity of headers propery maintained.
+        headers[0] = ('From', 'jon@example.com')
         self.assertEqual([
-                ('Content-Disposition', ''),
-                ('Content-Type', 'text/plain'),
-                ('Content-Disposition', ''),
-            ], att.headers)
+                ('From', 'jim@example.com'),
+                ('To', 'bob@example.com'),
+            ], msg.headers)
 
-    def test_set_content(self):
-        att = Attachment()
-        att.set_content('This is my attachment')
-        self.assertEqual('This is my attachment', att.content)
-
-    def test_as_dict(self):
-        pass
-
-
-class TestUnicodeMessage(unittest.TestCase):
     def test_set_header(self):
-        msg = UnicodeMessage()
+        msg = MessagePart()
         msg.set_header('Date', 'Wed, 24 Mar 2012 12:55:34 +0000')
         msg.set_header('Message-Id', '<201203241234dA120Pp@foo.bar>')
         msg.set_header('To', '"Bob Smith" <bob@example.com>')
@@ -66,7 +55,7 @@ class TestUnicodeMessage(unittest.TestCase):
             ], msg.headers)
 
     def test_delete_header(self):
-        msg = UnicodeMessage()
+        msg = MessagePart()
         msg.set_header('Date', 'Wed, 24 Mar 2012 12:55:34 +0000')
         msg.set_header('Message-Id', '<201203241234dA120Pp@foo.bar>')
         msg.set_header('To', '"Bob Smith" <bob@example.com>')
@@ -77,8 +66,13 @@ class TestUnicodeMessage(unittest.TestCase):
                 ('To', '"Bob Smith" <bob@example.com>'),
             ], msg.headers)
 
+    def test_delete_header_when_none(self):
+        msg = MessagePart()
+        msg.delete_header('Message-Id')
+        self.assertEqual(None, msg.headers)
+
     def replace_header(self):
-        msg = UnicodeMessage()
+        msg = MessagePart()
         msg.set_header('Date', 'Wed, 24 Mar 2012 12:55:34 +0000')
         msg.set_header('Message-Id', '<201203241234dA120Pp@foo.bar>')
         msg.set_header('To', '"Bob Smith" <bob@example.com>')
@@ -102,6 +96,31 @@ class TestUnicodeMessage(unittest.TestCase):
                 ('From', 'jim@example.com'),
                 ('Date', 'Tue, 23 Mar 2012 01:23:54 +0000'),
             ], msg.headers)
+
+    def replace_header_when_none(self):
+        msg = MessagePart()
+        msg.replace_header('Date', 'Tue, 23 Mar 2012 01:23:54 +0000')
+        self.assertEqual([
+                ('Date', 'Tue, 23 Mar 2012 01:23:54 +0000'),
+            ], msg.headers)
+
+
+class TestAttachment(unittest.TestCase):
+
+    def test_set_header(self):
+        """TODO: Test that we only set headers we want to keep."""
+        pass
+
+    def test_set_content(self):
+        att = Attachment()
+        att.set_content('This is my attachment')
+        self.assertEqual('This is my attachment', att.content.read())
+
+    def test_as_dict(self):
+        pass
+
+
+class TestUnicodeMessage(unittest.TestCase):
 
     def test_set_message_part(self):
         msg = UnicodeMessage()
@@ -145,9 +164,4 @@ class TestUnicodeMessage(unittest.TestCase):
 
     def test_as_string(self):
         pass
-
-
-class TestDigestMessage(unittest.TestCase):
-    pass
-
 

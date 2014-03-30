@@ -64,4 +64,3 @@ def get_charset(message):
         charset = message.get_charset()
     return charset
 
-

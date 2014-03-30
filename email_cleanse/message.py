@@ -5,11 +5,57 @@ Email message objects.
 """
 from __future__ import unicode_literals
 
+import copy
 from email.message import Message
-from collections import OrderedDict
+
 
 class Attachment(object):
-    pass
+
+    """
+    Message attachment class. Contains the raw content for the attachment
+    as well as a minimal set of headers as they pertain to the attachment's
+    content. These headers should include stuff like type and disposition.
+    """
+
+    headers = None
+    content = None
+
+    def __init__(self, content=None, headers=None):
+        """Initialize instance of Attachment.
+
+        Args:
+            content (string): The content of the message attachment.
+            headers (dict): Headers describing the message attachment.
+        """
+        self.headers = copy.copy(headers) or list()
+        self.content = content
+
+    def as_dict(self):
+        """Return the message attachment as a dictionary."""
+        return {
+            'headers': self.headers,
+            'content': self.content,
+        }
+
+    def set_header(self, name, value):
+        """Set the value for a header. Headers are stored in the order
+        they are first recieved. Setting the same header again does not
+        effect the order.
+
+        Args:
+            name (unicode): The name of the header.
+            value (unicode): The value for the header.
+        """
+        self.headers.append((name, value))
+
+    def set_content(self, content):
+        """Set the content to `content` if it's a file handle, else if it's
+        a string, assume it's the content itself and wrap it in a StringIO.
+
+        Args:
+            content (string|object): content as a string or as file handle.
+        """
+        self.content = content
 
 
 class UnicodeMessage(object):
@@ -26,15 +72,17 @@ class UnicodeMessage(object):
 
     def __init__(self):
         """Initialize instance of UnicodeMessage."""
-        self.headers = OrderedDict()
-        self.message_parts = OrderedDict()
-        self.attachments = set()
+        self.headers = list()
+        self.message_parts = list()
+        self.attachments = list()
 
     def as_dict(self):
         """Return the message headers and body as a dictionary."""
         return {
-            'headers': [(key, value) \
-                    for key, value in self.headers.iteritems()],
+            'headers': self.headers,
+            'message_parts': self.message_parts,
+            'attachments': [attachment.as_dict() \
+                    for attachment in self.attachments],
         }
 
     def as_string(self):
@@ -51,14 +99,37 @@ class UnicodeMessage(object):
 
     def set_header(self, name, value):
         """Set the value for a header. Headers are stored in the order
-        they are first recieved. Setting the same header again does not
-        effect the order.
+        they are first recieved. This method allows for setting multiple
+        headers with the same name. Use `replace_header` if you wish to
+        replace all other headers with this name with the one being added.
 
         Args:
             name (unicode): The name of the header.
             value (unicode): The value for the header.
         """
-        self.headers[name] = value
+        self.headers.append((name, value))
+
+    def replace_header(self, name, value):
+        """Replace the value for a header. Headers are stored in the order
+        they are first recieved. This method will remove existing headers
+        with the same name. Use `set_header` if you wish to set another
+        header with by the same name.
+
+        Args:
+            name (unicode): The name of the header.
+            value (unicide): The value of the header.
+        """
+        self.delete_header(name)
+        self.set_header(name, value)
+
+    def delete_header(self, name):
+        """Delete all occurrences of the header with the given name.
+
+        Args:
+            name (unicode): The name of the header.
+        """
+        self.headers = [(key, value) for (key, value) in self.headers \
+                if key != name]
 
     def set_message_part(self, message_body, content_type='text/plain'):
         """Set a message part (The body of the message). Message parts are
@@ -70,7 +141,7 @@ class UnicodeMessage(object):
             content_type (unicode): The content type for this message part.
                 Defaults to 'text/plain'.
         """
-        self.message_parts[content_type] = message_body
+        self.message_parts.append((content_type, message_body))
 
     def enqueue_attachment(self, attachment):
         """Add an attachment to the end of the attachment queue.

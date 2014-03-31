@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import copy
 import StringIO
+from collections import deque
 from email.message import Message
 
 
@@ -27,9 +28,22 @@ class MessagePart(object):
         """
         self.headers = copy.copy(headers or list())
 
-    def set_header(self, name, value):
-        """Set the value for a header. Headers are stored in the order
-        they are first recieved. This method allows for setting multiple
+    def get_headers_as_string(self):
+        """Get headers as a string. Each header on it's own line in order as
+        name-colon-space-value. Last header also ends with a new-line. Example::
+
+            Date: Wed, 24 Mar 2012 12:55:34 +0000\n
+            Message-Id: <201203241234dA120Pp@foo.bar>\n
+            To: "Bob Smith" <bob@example.com>\n
+            Subject: This is a test\n
+            From: jim@example.com\n
+        """
+        return ''.join("{0}: {1}\n".format(name, value) for name, value in \
+                self.headers)
+
+    def add_header(self, name, value):
+        """Add the name, value pair for a header. Headers are stored in the
+        order they are first recieved. This method allows for setting multiple
         headers with the same name. Use `replace_header` if you wish to
         replace all other headers with this name with the one being added.
 
@@ -63,7 +77,7 @@ class MessagePart(object):
             value (unicide): The value of the header.
         """
         self.delete_header(name)
-        self.set_header(name, value)
+        self.add_header(name, value)
 
 
 class Attachment(MessagePart):
@@ -86,10 +100,17 @@ class Attachment(MessagePart):
 
     def as_dict(self):
         """Return the message attachment as a dictionary."""
-        return {
-            'headers': self.headers,
-            'content': self.content,
-        }
+        if self.content:
+            self.content.seek(0)
+            return {
+                'headers': self.headers,
+                'content': self.content.read(),
+            }
+        else:
+            return {
+                'headers': self.headers,
+                'content': '',
+            }
 
     def set_content(self, content):
         """Set the content to `content` if it's a file handle, else if it's
@@ -116,7 +137,7 @@ class UnicodeMessage(MessagePart):
         """Initialize instance of UnicodeMessage."""
         self.headers = list()
         self.message_parts = list()
-        self.attachments = list()
+        self.attachments = deque()
 
     def as_dict(self):
         """Return the message headers and body as a dictionary."""
@@ -127,20 +148,12 @@ class UnicodeMessage(MessagePart):
                     for attachment in self.attachments],
         }
 
-    def as_string(self):
-        """Return the message headers and body flattened as a string."""
-        return ''
-
-    def __str__(self):
-        """Equivalent to as_string()."""
-        return self.as_string()
-
     def is_multipart(self):
         """Return whether or not this is a multipart message."""
         return self.attachments or len(self.message_parts) > 1
 
-    def set_message_part(self, message_body, content_type='text/plain'):
-        """Set a message part (The body of the message). Message parts are
+    def add_message_part(self, message_body, content_type='text/plain'):
+        """Add a message part (The body of the message). Message parts are
         stored in the order they are received.
 
         Args:
@@ -165,5 +178,5 @@ class UnicodeMessage(MessagePart):
         Returns:
             (Attachment) The attachment on the front of the queue.
         """
-        self.attachments.popleft(attachment)
+        return self.attachments.popleft()
 

@@ -85,7 +85,7 @@ class TestMessagePart(unittest.TestCase):
     def test_delete_header_when_none(self):
         msg = MessagePart()
         msg.delete_header('Message-Id')
-        self.assertEqual(None, msg.headers)
+        self.assertEqual([], msg.headers)
 
     def replace_header(self):
         msg = MessagePart()
@@ -144,10 +144,10 @@ class TestAttachment(unittest.TestCase):
 
 class TestUnicodeMessage(unittest.TestCase):
 
-    def test_add_message_part(self):
+    def test_add_alternative(self):
         msg = UnicodeMessage()
-        msg.add_message_part('This is the text part')
-        msg.add_message_part(
+        msg.add_alternative('This is the text part')
+        msg.add_alternative(
                 '<html><body><b>This is the HTML part</b></body></html>',
                 'text/html')
         # Order is preserved. First part gets default 'text/plain'.
@@ -155,7 +155,7 @@ class TestUnicodeMessage(unittest.TestCase):
                 ('text/plain', 'This is the text part'),
                 ('text/html', '<html><body><b>This is the HTML part</b>' + \
                     '</body></html>'),
-            ], msg.message_parts)
+            ], msg.alternatives)
 
     def test_enqueue_attachment(self):
         msg = UnicodeMessage()
@@ -180,16 +180,16 @@ class TestUnicodeMessage(unittest.TestCase):
     def test_is_multipart_alternative_single_type(self):
         msg = UnicodeMessage()
         self.assertFalse(msg.is_multipart())
-        msg.add_message_part('This is the text part')
+        msg.add_alternative('This is the text part')
         self.assertFalse(msg.is_multipart())
-        msg.add_message_part('This is another text part')
+        msg.add_alternative('This is another text part')
         self.assertTrue(msg.is_multipart())
 
-    def test_is_multiplart_alternative(self):
+    def test_is_multipart_alternative(self):
         msg = UnicodeMessage()
-        msg.add_message_part('This is the text part')
+        msg.add_alternative('This is the text part')
         self.assertFalse(msg.is_multipart())
-        msg.add_message_part('<b>This is HTML</b>', 'text/html')
+        msg.add_alternative('<b>This is HTML</b>', 'text/html')
         self.assertTrue(msg.is_multipart())
 
     def test_is_multipart_attachments(self):
@@ -204,12 +204,12 @@ class TestUnicodeMessage(unittest.TestCase):
         msg.add_header('Subject', 'This is a test')
         att_a = Attachment()
         msg.enqueue_attachment(att_a)
-        msg.add_message_part('This is the text part')
+        msg.add_alternative('This is the text part')
         self.assertEqual({
                 'headers': [
                     ('To', '"Bob Smith" <bob@example.com>'),
                     ('Subject', 'This is a test')],
-                'message_parts': [
+                'alternatives': [
                     ('text/plain', 'This is the text part')],
                 'attachments': [
                     {'content': '', 'headers': []}]

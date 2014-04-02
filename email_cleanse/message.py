@@ -17,7 +17,16 @@ class MessagePart(object):
     and Attachment classes. Basically handles all of the header handling.
     """
 
-    headers = None
+    def __init__(self, headers=None):
+        """Initialize instance of MessagePart.
+
+        Args:
+            headers (dict): Headers describing the message part.
+        """
+        if headers is None:
+            self.headers = list()
+        else:
+            self.set_all_headers(headers)
 
     def set_all_headers(self, headers):
         """Copy specified headers to this class replacing any exsiting
@@ -95,7 +104,7 @@ class Attachment(MessagePart):
             content (string): The content of the message attachment.
             headers (dict): Headers describing the message attachment.
         """
-        self.set_all_headers(headers)
+        super(Attachment, self).__init__(headers)
         self.content = content
 
     def as_dict(self):
@@ -135,34 +144,36 @@ class UnicodeMessage(MessagePart):
 
     def __init__(self):
         """Initialize instance of UnicodeMessage."""
-        self.headers = list()
-        self.message_parts = list()
+        super(UnicodeMessage, self).__init__()
+        self.alternatives = list()
         self.attachments = deque()
+        self.message_parts = list()
 
     def as_dict(self):
         """Return the message headers and body as a dictionary."""
         return {
             'headers': self.headers,
-            'message_parts': self.message_parts,
+            'alternatives': self.alternatives,
             'attachments': [attachment.as_dict() \
                     for attachment in self.attachments],
         }
 
     def is_multipart(self):
         """Return whether or not this is a multipart message."""
-        return self.attachments or len(self.message_parts) > 1
+        return self.attachments or len(self.alternatives) > 1 \
+                or self.message_parts
 
-    def add_message_part(self, message_body, content_type='text/plain'):
-        """Add a message part (The body of the message). Message parts are
+    def add_alternative(self, message_body, content_type='text/plain'):
+        """Add a message alternative (The body of the message). Alternatives are
         stored in the order they are received.
 
         Args:
-            message_body (unicode): The contents of the body of this mesage
-                part.
-            content_type (unicode): The content type for this message part.
+            message_body (unicode): The contents of the body of this message
+                alternative.
+            content_type (unicode): The content type for this alternative.
                 Defaults to 'text/plain'.
         """
-        self.message_parts.append((content_type, message_body))
+        self.alternatives.append((content_type, message_body))
 
     def enqueue_attachment(self, attachment):
         """Add an attachment to the end of the attachment queue.
